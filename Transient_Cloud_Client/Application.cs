@@ -24,6 +24,8 @@ namespace Transient_Cloud_Client
                 new Thread(new ThreadStart(new Watcher(directory).watch)).Start();
 
             // spawn one thread of DocumentMonitor
+            new Thread(new ThreadStart(DocumentMonitor.monitor)).Start();
+            
             // spawn one thread of StatisticsCollector
         }
 
