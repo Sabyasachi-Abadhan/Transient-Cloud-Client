@@ -9,10 +9,14 @@ namespace Transient_Cloud_Client
 {
     class Watcher
     {
-        private static FileSystemWatcher watcher = new FileSystemWatcher();
-        public String Path { get; set; }
-        private static String extensionsToWatch = "*.*";
-        static Watcher()
+        private FileSystemWatcher watcher;
+        private String extensionsToWatch = "*.*";
+        public Watcher(String directoryToWatch)
+        {
+            watcher = new FileSystemWatcher();
+            watcher.Path = directoryToWatch;
+        }
+        public void watch()
         {
             watcher.Filter = extensionsToWatch;
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
@@ -21,20 +25,9 @@ namespace Transient_Cloud_Client
             watcher.Created += new FileSystemEventHandler(OnChanged);
             watcher.Deleted += new FileSystemEventHandler(OnChanged);
             watcher.Renamed += new RenamedEventHandler(OnRenamed);
-        }
-        public static void Main(String[] args)
-        {
-            Console.WriteLine("Enter directory to watch");
-            //watcher.Path = Console.ReadLine();
-
-            // Start raising events
-            //watcher.EnableRaisingEvents = true;
-            while (Console.Read() != 'q')
-            {
-                DocumentMonitor.Print(DocumentMonitor.GetOpenedExcelFiles(new ArrayList()));
-                DocumentMonitor.Print(DocumentMonitor.GetOpenedPowerpointFiles(new ArrayList()));
-                DocumentMonitor.Print(DocumentMonitor.GetOpenedWordFiles(new ArrayList()));
-            }
+            watcher.EnableRaisingEvents = true;
+            Console.WriteLine("Starting to watch: " + this.watcher.Path);
+            while (true);
         }
         private static void OnChanged(object source, FileSystemEventArgs e)
         {

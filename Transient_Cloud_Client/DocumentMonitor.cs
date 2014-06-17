@@ -36,7 +36,7 @@ namespace Transient_Cloud_Client
             try
             {
                 Microsoft.Office.Interop.PowerPoint.Application application = (Microsoft.Office.Interop.PowerPoint.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("PowerPoint.Application");
-                foreach (Microsoft.Office.Interop.PowerPoint.Presentation presentation in application.Presentations
+                foreach (Microsoft.Office.Interop.PowerPoint.Presentation presentation in application.Presentations)
                     presentationList.Add(presentation.FullName);
             }
             catch { }
@@ -48,5 +48,7 @@ namespace Transient_Cloud_Client
             foreach (String item in list)
                 Console.WriteLine(item);
         }
+
+
     }
 }
