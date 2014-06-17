@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,11 +25,16 @@ namespace Transient_Cloud_Client
         public static void Main(String[] args)
         {
             Console.WriteLine("Enter directory to watch");
-            watcher.Path = Console.ReadLine();
+            //watcher.Path = Console.ReadLine();
 
             // Start raising events
-            watcher.EnableRaisingEvents = true;
-            while (Console.Read() != 'q') ;
+            //watcher.EnableRaisingEvents = true;
+            while (Console.Read() != 'q')
+            {
+                DocumentMonitor.Print(DocumentMonitor.GetOpenedExcelFiles(new ArrayList()));
+                DocumentMonitor.Print(DocumentMonitor.GetOpenedPowerpointFiles(new ArrayList()));
+                DocumentMonitor.Print(DocumentMonitor.GetOpenedWordFiles(new ArrayList()));
+            }
         }
         private static void OnChanged(object source, FileSystemEventArgs e)
         {
