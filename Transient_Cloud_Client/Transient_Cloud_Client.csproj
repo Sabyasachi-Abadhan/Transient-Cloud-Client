@@ -36,6 +36,7 @@
   <ItemGroup>
     <Compile Include="Application.cs" />
     <Compile Include="DocumentMonitor.cs" />
+    <Compile Include="Event.cs" />
     <Compile Include="StatisticsCollector.cs" />
     <Compile Include="Watcher.cs" />
   </ItemGroup>
@@ -70,7 +71,9 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

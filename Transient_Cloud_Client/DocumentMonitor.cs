@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 
@@ -8,6 +9,12 @@ namespace Transient_Cloud_Client
 {
     class DocumentMonitor
     {
+        private ConcurrentQueue<Event> events;
+        private String OPEN_ACTION = "open";
+        public DocumentMonitor(ConcurrentQueue<Event> events)
+        {
+            this.events = events;
+        }
         public static ArrayList GetOpenedWordFiles()
         {
             ArrayList documentList = new ArrayList();
@@ -15,7 +22,7 @@ namespace Transient_Cloud_Client
             {
                 Microsoft.Office.Interop.Word.Application application = (Microsoft.Office.Interop.Word.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Word.Application");
                 foreach (Microsoft.Office.Interop.Word.Document document in application.Documents)
-                    documentList.Add(document.FullName);
+                    documentList.Add(new Event(document.FullName, document.Path, "open"));
             }
             catch { }
             return documentList;
@@ -28,7 +35,7 @@ namespace Transient_Cloud_Client
             {
                 Microsoft.Office.Interop.Excel.Application application = (Microsoft.Office.Interop.Excel.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
                 foreach (Microsoft.Office.Interop.Excel.Workbook workbook in application.Workbooks)
-                    workBookList.Add(workbook.FullName);
+                    workBookList.Add(new Event(workbook.FullName, workbook.Path, "open"));
             }
             catch { }
             return workBookList;
@@ -41,7 +48,7 @@ namespace Transient_Cloud_Client
             {
                 Microsoft.Office.Interop.PowerPoint.Application application = (Microsoft.Office.Interop.PowerPoint.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("PowerPoint.Application");
                 foreach (Microsoft.Office.Interop.PowerPoint.Presentation presentation in application.Presentations)
-                    presentationList.Add(presentation.FullName);
+                    presentationList.Add(new Event(presentation.FullName, presentation.Path, "open"));
             }
             catch { }
             return presentationList;
@@ -58,12 +65,12 @@ namespace Transient_Cloud_Client
         {
             String[] directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DirectoriesToWatch"].Split(',');
             ArrayList sublist = new ArrayList();
-            foreach(String directory in directoriesToWatch)
+            foreach (String directory in directoriesToWatch)
                 sublist.AddRange(list.Cast<String>().Where(f => f.StartsWith(directory) == true).ToList());
             return sublist;
         }
 
-        public static void monitor()
+        public void monitor()
         {
             while (true)
             {
@@ -71,8 +78,10 @@ namespace Transient_Cloud_Client
                 list = GetOpenedWordFiles();
                 list.AddRange(GetOpenedExcelFiles());
                 list.AddRange(GetOpenedPowerpointFiles());
-                // Shared Queue Logic Will go here instead of the print
-                Print(list);
+                //Print(list);
+                foreach (Event currentEvent in list)
+                    events.Enqueue(currentEvent);
+                list.Clear();
             }
         }
     }
