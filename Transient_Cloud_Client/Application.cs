@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -14,11 +15,8 @@ namespace Transient_Cloud_Client
 
         public static void Main(String[] arguments)
         {
-            // load settings from configuration file
-            directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DirectoriesToWatch"].Split(',');
-            url = System.Configuration.ConfigurationManager.AppSettings["ApiUrl"];
-            if (noDirectoriesSpecified())
-                directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DefaultDirectoriesToWatch"].Split(',');
+
+            Initialize();
 
             // Initialize Shared Queue
             ConcurrentQueue<Event> events = new ConcurrentQueue<Event>();
@@ -36,7 +34,23 @@ namespace Transient_Cloud_Client
             new Thread(new ThreadStart(statisticsCollector.Collect)).Start();
         }
 
-        private static bool noDirectoriesSpecified()
+        private static void Initialize()
+        {
+            // load settings from configuration file
+            directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DirectoriesToWatch"].Split(',');
+            url = System.Configuration.ConfigurationManager.AppSettings["ApiUrl"];
+            if (NoDirectoriesSpecified())
+                directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DefaultDirectoriesToWatch"].Split(',');
+
+            // Dropbox Folder Initializations
+            String dropboxDirectory = System.Configuration.ConfigurationManager.AppSettings["DropboxDirectory"];
+            String transientCloudDirectory = System.Configuration.ConfigurationManager.AppSettings["TransientCloudDirectoryName"];
+            String transientCloudPath = String.Concat(dropboxDirectory, transientCloudDirectory);
+            if (!Directory.Exists(transientCloudPath))
+                Directory.CreateDirectory(transientCloudPath);
+        }
+
+        private static bool NoDirectoriesSpecified()
         {
             return (directoriesToWatch.Length == 0);
         }

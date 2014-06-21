@@ -9,6 +9,7 @@ namespace Transient_Cloud_Client
     class StatisticsCollector
     {
         private ConcurrentQueue<Event> events;
+        private Dictionary<File, long> fileList = new Dictionary<File, long>();
         public StatisticsCollector(ConcurrentQueue<Event> events)
         {
             this.events = events;

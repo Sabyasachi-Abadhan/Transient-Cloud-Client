@@ -10,7 +10,6 @@ namespace Transient_Cloud_Client
     class DocumentMonitor
     {
         private ConcurrentQueue<Event> events;
-        private String OPEN_ACTION = "open";
         public DocumentMonitor(ConcurrentQueue<Event> events)
         {
             this.events = events;
