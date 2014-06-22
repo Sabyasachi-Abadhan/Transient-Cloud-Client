@@ -7,7 +7,7 @@ namespace Transient_Cloud_Client
 {
     class Event
     {
-        public Event(String fileName, String filePath, String action)
+        public Event(String fileName, String filePath, Utilities.EVENT_ACTIONS action)
         {
             File file = new File(fileName, filePath);
             this.File = file;
@@ -26,8 +26,8 @@ namespace Transient_Cloud_Client
             }
         }
 
-        private String action;
-        public String Action
+        private Utilities.EVENT_ACTIONS action;
+        public Utilities.EVENT_ACTIONS Action
         {
             get
             {

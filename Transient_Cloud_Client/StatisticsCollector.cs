@@ -30,7 +30,7 @@ namespace Transient_Cloud_Client
         {
             switch (currentEvent.Action)
             {
-                case "open":
+                case Utilities.EVENT_ACTIONS.open:
                     if (!IsTracked(currentEvent.File.Name))
                     {
                         fileList.Add(currentEvent.File.Name, currentEvent.File);

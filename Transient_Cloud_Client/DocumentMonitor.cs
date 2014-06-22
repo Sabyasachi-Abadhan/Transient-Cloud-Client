@@ -21,7 +21,7 @@ namespace Transient_Cloud_Client
             {
                 Microsoft.Office.Interop.Word.Application application = (Microsoft.Office.Interop.Word.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Word.Application");
                 foreach (Microsoft.Office.Interop.Word.Document document in application.Documents)
-                    documentList.Add(new Event(document.Name, document.Path, "open"));
+                    documentList.Add(new Event(document.Name, document.Path, Utilities.EVENT_ACTIONS.open));
             }
             catch { }
             return documentList;
@@ -34,7 +34,7 @@ namespace Transient_Cloud_Client
             {
                 Microsoft.Office.Interop.Excel.Application application = (Microsoft.Office.Interop.Excel.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
                 foreach (Microsoft.Office.Interop.Excel.Workbook workbook in application.Workbooks)
-                    workBookList.Add(new Event(workbook.Name, workbook.Path, "open"));
+                    workBookList.Add(new Event(workbook.Name, workbook.Path, Utilities.EVENT_ACTIONS.open));
             }
             catch { }
             return workBookList;
@@ -47,7 +47,7 @@ namespace Transient_Cloud_Client
             {
                 Microsoft.Office.Interop.PowerPoint.Application application = (Microsoft.Office.Interop.PowerPoint.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("PowerPoint.Application");
                 foreach (Microsoft.Office.Interop.PowerPoint.Presentation presentation in application.Presentations)
-                    presentationList.Add(new Event(presentation.Name, presentation.Path, "open"));
+                    presentationList.Add(new Event(presentation.Name, presentation.Path, Utilities.EVENT_ACTIONS.open));
             }
             catch { }
             return presentationList;
