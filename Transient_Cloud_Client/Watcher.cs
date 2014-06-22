@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.IO;
@@ -11,10 +12,12 @@ namespace Transient_Cloud_Client
     {
         private FileSystemWatcher watcher;
         private String extensionsToWatch = "*.*";
-        public Watcher(String directoryToWatch)
+        private ConcurrentQueue<Event> events;
+        public Watcher(String directoryToWatch, ConcurrentQueue<Event> events)
         {
             watcher = new FileSystemWatcher();
             watcher.Path = directoryToWatch;
+            this.events = events;
         }
         public void watch()
         {
@@ -29,20 +32,31 @@ namespace Transient_Cloud_Client
             Console.WriteLine("Starting to watch: " + this.watcher.Path);
             while (true);
         }
-        private static void OnChanged(object source, FileSystemEventArgs e)
+        private void OnChanged(object source, FileSystemEventArgs e)
         {
             // Specify what is done when a file is changed, created, or deleted.
            // Console.WriteLine("File: " + e.FullPath + " " + e.ChangeType);
         }
 
-        private static void OnRenamed(object source, RenamedEventArgs e)
+        private void OnRenamed(object source, RenamedEventArgs e)
         {
             // Specify what is done when a file is renamed.
-            //Console.WriteLine("File: {0} renamed to {1}", e.OldFullPath, e.FullPath);
+            //Console.WriteLine("File: {0} renamed to {1}", e.OldFullPath, e.FullPath
         }
 
-        private static void OnDeleted(object source, FileSystemEventArgs e)
+        private void OnDeleted(object source, FileSystemEventArgs e)
         {
+            String fileName = extractNameFromPath(e.Name);
+            if (!e.FullPath.Contains(Settings.transientCloudDirectoryPath))
+            {
+                Console.WriteLine("Enqueing delete operation on file {0}", fileName);
+                events.Enqueue(new Event(fileName, e.FullPath, Utilities.EVENT_ACTIONS.delete));
+            }
+        }
+
+        private String extractNameFromPath(String path)
+        {
+            return path.Substring(path.LastIndexOf("\\") + 1);
         }
     }
 }

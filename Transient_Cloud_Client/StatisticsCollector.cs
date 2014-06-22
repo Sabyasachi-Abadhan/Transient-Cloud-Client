@@ -45,9 +45,29 @@ namespace Transient_Cloud_Client
                         CopyFile(currentEvent.File);
                     }
                     break;
+                case Utilities.EVENT_ACTIONS.delete:
+                    if (IsTracked(currentEvent.File.Name))
+                    {
+                        // delete from transient folder
+                        DeleteFile(currentEvent.File);
+                        
+                        // delete from the server
+                        sendDeleteRequest(currentEvent.File);
+                        
+                        // remove from internal data structure
+                        fileList.Remove(currentEvent.File.Name);
+                        
+                    }
+                        
+                    break;
             }
         }
 
+        private static void DeleteFile(File file)
+        {
+            SystemFile.Delete(String.Concat(Settings.transientCloudDirectoryPath, file.Name));
+        }
+        
         private static void CopyFile(File file)
         {
             Console.WriteLine("Currently Processing: " + file.Name);
@@ -72,6 +92,10 @@ namespace Transient_Cloud_Client
             // 
         }
 
+        private void sendDeleteRequest(File file)
+        {
+            // Send the name and hash of file so the server can delete it
+        }
         private int generateMD5Hash(File file)
         {
             using (var md5 = MD5.Create())

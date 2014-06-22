@@ -20,8 +20,9 @@ namespace Transient_Cloud_Client
             ConcurrentQueue<Event> events = new ConcurrentQueue<Event>();
 
             // Spawn watcher threads, try to spawn only one thread
+            
             foreach (String directory in Settings.directoriesToWatch)
-                new Thread(new ThreadStart(new Watcher(directory).watch)).Start();
+                new Thread(new ThreadStart(new Watcher(directory, events).watch)).Start();
 
             // spawn one thread of DocumentMonitor
             DocumentMonitor documentMonitor = new DocumentMonitor(ref events);
