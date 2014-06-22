@@ -43,7 +43,7 @@ namespace Transient_Cloud_Client
 
             // Dropbox Folder Initializations
             Settings.dropboxDirectory = System.Configuration.ConfigurationManager.AppSettings["DropboxDirectory"];
-            Settings.transientCloudDirectoryName = System.Configuration.ConfigurationManager.AppSettings["TransientCloudDirectoryName"];
+            Settings.transientCloudDirectoryName = Environment.UserName;
             Settings.transientCloudDirectoryPath = String.Concat(Settings.dropboxDirectory, Settings.transientCloudDirectoryName, "\\");
             if (!Directory.Exists(Settings.transientCloudDirectoryPath))
                 Directory.CreateDirectory(Settings.transientCloudDirectoryPath);

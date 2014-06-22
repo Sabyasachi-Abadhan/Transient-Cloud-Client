@@ -23,7 +23,7 @@ namespace Transient_Cloud_Client
             watcher.IncludeSubdirectories = true;
             watcher.Changed += new FileSystemEventHandler(OnChanged);
             watcher.Created += new FileSystemEventHandler(OnChanged);
-            watcher.Deleted += new FileSystemEventHandler(OnChanged);
+            watcher.Deleted += new FileSystemEventHandler(OnDeleted);
             watcher.Renamed += new RenamedEventHandler(OnRenamed);
             watcher.EnableRaisingEvents = true;
             Console.WriteLine("Starting to watch: " + this.watcher.Path);
@@ -39,6 +39,10 @@ namespace Transient_Cloud_Client
         {
             // Specify what is done when a file is renamed.
             //Console.WriteLine("File: {0} renamed to {1}", e.OldFullPath, e.FullPath);
+        }
+
+        private static void OnDeleted(object source, FileSystemEventArgs e)
+        {
         }
     }
 }
