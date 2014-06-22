@@ -10,8 +10,6 @@ namespace Transient_Cloud_Client
 {
     class Application
     {
-        private static String[] directoriesToWatch;
-        private static String url;
 
         public static void Main(String[] arguments)
         {
@@ -22,37 +20,38 @@ namespace Transient_Cloud_Client
             ConcurrentQueue<Event> events = new ConcurrentQueue<Event>();
 
             // Spawn watcher threads, try to spawn only one thread
-            foreach (String directory in directoriesToWatch)
+            foreach (String directory in Settings.directoriesToWatch)
                 new Thread(new ThreadStart(new Watcher(directory).watch)).Start();
 
             // spawn one thread of DocumentMonitor
-            DocumentMonitor documentMonitor = new DocumentMonitor(events);
+            DocumentMonitor documentMonitor = new DocumentMonitor(ref events);
             new Thread(new ThreadStart(documentMonitor.monitor)).Start();
 
             // spawn one thread of StatisticsCollector
-            StatisticsCollector statisticsCollector = new StatisticsCollector(events);
+            StatisticsCollector statisticsCollector = new StatisticsCollector(ref events);
             new Thread(new ThreadStart(statisticsCollector.Collect)).Start();
         }
 
         private static void Initialize()
         {
             // load settings from configuration file
-            directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DirectoriesToWatch"].Split(',');
-            url = System.Configuration.ConfigurationManager.AppSettings["ApiUrl"];
+            Settings.directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DirectoriesToWatch"].Split(',');
+            Settings.apiUrl= System.Configuration.ConfigurationManager.AppSettings["ApiUrl"];
+            Settings.defaultDirectoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DefaultDirectoriesToWatch"].Split(',');
             if (NoDirectoriesSpecified())
-                directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DefaultDirectoriesToWatch"].Split(',');
+                Settings.directoriesToWatch = Settings.defaultDirectoriesToWatch;
 
             // Dropbox Folder Initializations
-            String dropboxDirectory = System.Configuration.ConfigurationManager.AppSettings["DropboxDirectory"];
-            String transientCloudDirectory = System.Configuration.ConfigurationManager.AppSettings["TransientCloudDirectoryName"];
-            String transientCloudPath = String.Concat(dropboxDirectory, transientCloudDirectory);
-            if (!Directory.Exists(transientCloudPath))
-                Directory.CreateDirectory(transientCloudPath);
+            Settings.dropboxDirectory = System.Configuration.ConfigurationManager.AppSettings["DropboxDirectory"];
+            Settings.transientCloudDirectoryName = System.Configuration.ConfigurationManager.AppSettings["TransientCloudDirectoryName"];
+            Settings.transientCloudDirectoryPath = String.Concat(Settings.dropboxDirectory, Settings.transientCloudDirectoryName, "\\");
+            if (!Directory.Exists(Settings.transientCloudDirectoryPath))
+                Directory.CreateDirectory(Settings.transientCloudDirectoryPath);
         }
 
         private static bool NoDirectoriesSpecified()
         {
-            return (directoriesToWatch.Length == 0);
+            return (Settings.directoriesToWatch.Length == 0);
         }
     }
 }

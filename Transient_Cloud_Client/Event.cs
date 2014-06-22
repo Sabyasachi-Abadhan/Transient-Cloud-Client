@@ -9,35 +9,23 @@ namespace Transient_Cloud_Client
     {
         public Event(String fileName, String filePath, String action)
         {
-            FileName = fileName;
-            FilePath = filePath;
-            Action = action;
+            File file = new File(fileName, filePath);
+            this.File = file;
+            this.Action = action;
         }
-        private String filePath;
-        private String fileName;
-        public String FileName
+        private File file;
+        public File File
         {
             get
             {
-                return fileName;
+                return file;
             }
             set
             {
-                fileName = value;
+                file = value;
             }
         }
-        
-        public String FilePath
-        {
-            get
-            {
-                return filePath;
-            }
-            set
-            {
-                filePath = value;
-            }
-        }
+
         private String action;
         public String Action
         {

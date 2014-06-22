@@ -33,11 +33,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
     <Compile Include="Application.cs" />
     <Compile Include="DocumentMonitor.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="File.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="StatisticsCollector.cs" />
     <Compile Include="Watcher.cs" />
   </ItemGroup>

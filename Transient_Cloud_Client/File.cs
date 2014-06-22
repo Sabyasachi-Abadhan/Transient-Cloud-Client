@@ -7,6 +7,12 @@ namespace Transient_Cloud_Client
 {
     class File
     {
+        public File(String name, String path)
+        {
+            this.Name = name;
+            this.Path = path;
+            this.LastModified = System.IO.File.GetLastAccessTime(path);
+        }
         private String name;
         public String Name
         {
@@ -43,6 +49,10 @@ namespace Transient_Cloud_Client
             {
                 lastModified = value;
             }
+        }
+        public void UpdateLastModified()
+        {
+            LastModified = DateTime.Now;
         }
     }
 }

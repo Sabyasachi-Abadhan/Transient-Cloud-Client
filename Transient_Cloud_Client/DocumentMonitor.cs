@@ -10,7 +10,7 @@ namespace Transient_Cloud_Client
     class DocumentMonitor
     {
         private ConcurrentQueue<Event> events;
-        public DocumentMonitor(ConcurrentQueue<Event> events)
+        public DocumentMonitor(ref ConcurrentQueue<Event> events)
         {
             this.events = events;
         }
@@ -21,7 +21,7 @@ namespace Transient_Cloud_Client
             {
                 Microsoft.Office.Interop.Word.Application application = (Microsoft.Office.Interop.Word.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Word.Application");
                 foreach (Microsoft.Office.Interop.Word.Document document in application.Documents)
-                    documentList.Add(new Event(document.FullName, document.Path, "open"));
+                    documentList.Add(new Event(document.Name, document.Path, "open"));
             }
             catch { }
             return documentList;
@@ -34,7 +34,7 @@ namespace Transient_Cloud_Client
             {
                 Microsoft.Office.Interop.Excel.Application application = (Microsoft.Office.Interop.Excel.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
                 foreach (Microsoft.Office.Interop.Excel.Workbook workbook in application.Workbooks)
-                    workBookList.Add(new Event(workbook.FullName, workbook.Path, "open"));
+                    workBookList.Add(new Event(workbook.Name, workbook.Path, "open"));
             }
             catch { }
             return workBookList;
@@ -47,7 +47,7 @@ namespace Transient_Cloud_Client
             {
                 Microsoft.Office.Interop.PowerPoint.Application application = (Microsoft.Office.Interop.PowerPoint.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("PowerPoint.Application");
                 foreach (Microsoft.Office.Interop.PowerPoint.Presentation presentation in application.Presentations)
-                    presentationList.Add(new Event(presentation.FullName, presentation.Path, "open"));
+                    presentationList.Add(new Event(presentation.Name, presentation.Path, "open"));
             }
             catch { }
             return presentationList;
@@ -55,8 +55,8 @@ namespace Transient_Cloud_Client
 
         public static void Print(ArrayList list)
         {
-            foreach (String item in list)
-                Console.WriteLine(item);
+            foreach (Event currentEvent in list)
+                Console.WriteLine(currentEvent.File.Name);
         }
 
         // Need to fix this method and write some tests for him
@@ -77,7 +77,8 @@ namespace Transient_Cloud_Client
                 list = GetOpenedWordFiles();
                 list.AddRange(GetOpenedExcelFiles());
                 list.AddRange(GetOpenedPowerpointFiles());
-                //Print(list);
+                Console.WriteLine("Enqueueing: ");
+                Print(list);
                 foreach (Event currentEvent in list)
                     events.Enqueue(currentEvent);
                 list.Clear();
