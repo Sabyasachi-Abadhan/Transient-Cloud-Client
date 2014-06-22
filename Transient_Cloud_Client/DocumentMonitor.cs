@@ -59,16 +59,6 @@ namespace Transient_Cloud_Client
                 Console.WriteLine(currentEvent.File.Name);
         }
 
-        // Need to fix this method and write some tests for him
-        public static ArrayList FilterList(ArrayList list)
-        {
-            String[] directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DirectoriesToWatch"].Split(',');
-            ArrayList sublist = new ArrayList();
-            foreach (String directory in directoriesToWatch)
-                sublist.AddRange(list.Cast<String>().Where(f => f.StartsWith(directory) == true).ToList());
-            return sublist;
-        }
-
         public void monitor()
         {
             while (true)
@@ -78,7 +68,7 @@ namespace Transient_Cloud_Client
                 list.AddRange(GetOpenedExcelFiles());
                 list.AddRange(GetOpenedPowerpointFiles());
                 Console.WriteLine("Enqueueing: ");
-                Print(list);
+                Print(Utilities.FilterList(list));
                 foreach (Event currentEvent in list)
                     events.Enqueue(currentEvent);
                 list.Clear();
