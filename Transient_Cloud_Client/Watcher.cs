@@ -30,18 +30,23 @@ namespace Transient_Cloud_Client
             watcher.Renamed += new RenamedEventHandler(OnRenamed);
             watcher.EnableRaisingEvents = true;
             Console.WriteLine("Starting to watch: " + this.watcher.Path);
-            while (true);
+            while (true) ;
         }
         private void OnChanged(object source, FileSystemEventArgs e)
         {
             // Specify what is done when a file is changed, created, or deleted.
-           // Console.WriteLine("File: " + e.FullPath + " " + e.ChangeType);
+            // Console.WriteLine("File: " + e.FullPath + " " + e.ChangeType);
         }
 
         private void OnRenamed(object source, RenamedEventArgs e)
         {
-            // Specify what is done when a file is renamed.
-            //Console.WriteLine("File: {0} renamed to {1}", e.OldFullPath, e.FullPath
+            // If the new path is outside one of the watched directories, we can go ahead and delete 
+            events.Enqueue(new Event(extractNameFromPath(e.OldFullPath), e.OldFullPath, Utilities.EVENT_ACTIONS.delete));
+            if (Utilities.fileIsImportant(e.FullPath))
+            {
+                Console.WriteLine(extractNameFromPath(e.FullPath) + "|" + e.FullPath);
+                events.Enqueue(new Event(extractNameFromPath(e.FullPath), e.FullPath, Utilities.EVENT_ACTIONS.open));
+            }
         }
 
         private void OnDeleted(object source, FileSystemEventArgs e)

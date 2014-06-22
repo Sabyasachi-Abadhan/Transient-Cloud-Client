@@ -52,7 +52,7 @@ namespace Transient_Cloud_Client
         }
         public void UpdateLastModified()
         {
-            LastModified = DateTime.Now;
+            this.LastModified = System.IO.File.GetLastAccessTime(path);
         }
     }
 }
