@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
 using SystemFile = System.IO.File;
 using System.Linq;
 using System.Text;
@@ -66,6 +67,23 @@ namespace Transient_Cloud_Client
                 }
         }
 
+        private void PostToServer(File file)
+        {
+            // 
+        }
+
+        private int generateMD5Hash(File file)
+        {
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = SystemFile.OpenRead(String.Concat(file.Path, "\\", file.Name)))
+                {
+                    Byte[] bytes = md5.ComputeHash(stream);
+                    return BitConverter.ToInt32(bytes, 0);
+                }
+            }
+        }
+        
         public Boolean IsTracked(String fileName)
         {
             return fileList.ContainsKey(fileName);
