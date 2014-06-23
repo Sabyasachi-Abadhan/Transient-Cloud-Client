@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using SystemFile = System.IO.File;
 using System.Linq;
 using System.Text;
+using System.Net;
+using System.Web;
 
 namespace Transient_Cloud_Client
 {
@@ -41,7 +44,7 @@ namespace Transient_Cloud_Client
                     if (IsTracked(currentEvent.File.Name))
                         fileList[currentEvent.File.Name] = new File(currentEvent.File.Name, currentEvent.File.Path);
                     break;
-            
+
             }
         }
 
@@ -59,6 +62,9 @@ namespace Transient_Cloud_Client
                 fileList[currentEvent.File.Name].UpdateLastModified();
                 CopyFile(currentEvent.File);
             }
+
+            // Send request to server
+            SendCreateRequest(currentEvent.File);
         }
 
         private void DeleteHandler(Event currentEvent)
@@ -80,7 +86,7 @@ namespace Transient_Cloud_Client
         {
             SystemFile.Delete(String.Concat(Settings.transientCloudDirectoryPath, file.Name));
         }
-        
+
         private static void CopyFile(File file)
         {
             Console.WriteLine("Currently Processing: " + file.Name);
@@ -89,7 +95,7 @@ namespace Transient_Cloud_Client
             // Does destination file exist?
             // Don't copy if the last modified date of the file is the same as what is present in the directory
 
-            if(!SystemFile.Exists(destination) || SystemFile.GetLastWriteTime(destination) <= SystemFile.GetLastWriteTime(source))
+            if (!SystemFile.Exists(destination) || SystemFile.GetLastWriteTime(destination) <= SystemFile.GetLastWriteTime(source) && Utilities.ExtensionIsSupported(source))
                 try
                 {
                     System.IO.File.Copy(source, destination, true);
@@ -101,16 +107,40 @@ namespace Transient_Cloud_Client
                 }
         }
 
-        private void PostToServer(File file)
+        private byte[] PostDataToServer(NameValueCollection data)
         {
-            // 
+            byte[] response;
+            using (WebClient webClient = new WebClient())
+            {
+                String url = String.Concat(Settings.apiUrl, "create/");
+                Console.WriteLine("URL : " + url);
+                response = webClient.UploadValues(url, data);
+            }
+            return response;
+        }
+
+        private void SendCreateRequest(File file)
+        {
+            NameValueCollection data = new NameValueCollection()
+            {
+                {"fileHash", "1"},
+                {"action", "create"},
+                {"fileName", file.Name},
+                {"filePath", file.Path},
+                {"fileLastModified", file.LastModified.ToShortTimeString()}
+            };
+            byte[] response = PostDataToServer(data);
+            if (response == null)
+                Console.WriteLine("An Error occured while posting data to server");
+            else
+                Console.WriteLine("Successfully created file {0} on server", file.Name);
         }
 
         private void sendDeleteRequest(File file)
         {
             // Send the name and hash of file so the server can delete it
         }
-        private int generateMD5Hash(File file)
+        private int GenerateMD5Hash(File file)
         {
             using (var md5 = MD5.Create())
             {
@@ -121,7 +151,7 @@ namespace Transient_Cloud_Client
                 }
             }
         }
-        
+
         public Boolean IsTracked(String fileName)
         {
             return fileList.ContainsKey(fileName);

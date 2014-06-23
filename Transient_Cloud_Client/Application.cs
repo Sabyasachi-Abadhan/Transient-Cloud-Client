@@ -20,7 +20,7 @@ namespace Transient_Cloud_Client
             ConcurrentQueue<Event> events = new ConcurrentQueue<Event>();
 
             // Spawn watcher threads, try to spawn only one thread
-            
+
             foreach (String directory in Settings.directoriesToWatch)
                 new Thread(new ThreadStart(new Watcher(directory, events).watch)).Start();
 
@@ -37,7 +37,7 @@ namespace Transient_Cloud_Client
         {
             // load settings from configuration file
             Settings.directoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DirectoriesToWatch"].Split(',');
-            Settings.apiUrl= System.Configuration.ConfigurationManager.AppSettings["ApiUrl"];
+            Settings.apiUrl = System.Configuration.ConfigurationManager.AppSettings["ApiUrl"];
             Settings.defaultDirectoriesToWatch = System.Configuration.ConfigurationManager.AppSettings["DefaultDirectoriesToWatch"].Split(',');
             if (NoDirectoriesSpecified())
                 Settings.directoriesToWatch = Settings.defaultDirectoriesToWatch;
@@ -48,6 +48,9 @@ namespace Transient_Cloud_Client
             Settings.transientCloudDirectoryPath = String.Concat(Settings.dropboxDirectory, Settings.transientCloudDirectoryName, "\\");
             if (!Directory.Exists(Settings.transientCloudDirectoryPath))
                 Directory.CreateDirectory(Settings.transientCloudDirectoryPath);
+
+            //Check if Web Server is Online
+            Console.WriteLine(Utilities.IsServerOnline() ? "Server is Online" : "Server is Offline");
         }
 
         private static bool NoDirectoriesSpecified()
