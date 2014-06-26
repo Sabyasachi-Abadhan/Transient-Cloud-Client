@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 
 namespace Transient_Cloud_Client
 {
-    class Utilities
+    class FileSystemUtilities
     {
         public enum EVENT_ACTIONS
         {
@@ -59,6 +59,26 @@ namespace Transient_Cloud_Client
             if (responseText.Equals("Server is running"))
                 return true;
             return false;
+        }
+
+        public static void CopyFile(File file)
+        {
+            Console.WriteLine("Currently Processing: " + file.Name);
+            String destination = String.Concat(Settings.transientCloudDirectoryPath, file.Name);
+            String source = file.Path;
+            // Does destination file exist?
+            // Don't copy if the last modified date of the file is the same as what is present in the directory
+
+            if (!SystemFile.Exists(destination) || SystemFile.GetLastWriteTime(destination) <= SystemFile.GetLastWriteTime(source) && FileSystemUtilities.ExtensionIsSupported(source))
+                try
+                {
+                    System.IO.File.Copy(source, destination, true);
+                }
+                catch
+                {
+                    Console.WriteLine("Couldn't copy at this time");
+                    Console.WriteLine(source + "|" + destination);
+                }
         }
 
         public static int GenerateMD5Hash(File file)

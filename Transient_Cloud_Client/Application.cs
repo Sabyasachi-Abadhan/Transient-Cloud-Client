@@ -50,7 +50,7 @@ namespace Transient_Cloud_Client
                 Directory.CreateDirectory(Settings.transientCloudDirectoryPath);
 
             //Check if Web Server is Online
-            Console.WriteLine(Utilities.IsServerOnline() ? "Server is Online" : "Server is Offline");
+            Console.WriteLine(FileSystemUtilities.IsServerOnline() ? "Server is Online" : "Server is Offline");
         }
 
         private static bool NoDirectoriesSpecified()

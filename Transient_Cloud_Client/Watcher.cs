@@ -40,43 +40,43 @@ namespace Transient_Cloud_Client
 
         private void OnChanged(object source, FileSystemEventArgs e)
         {
-            if (!Utilities.ExtensionIsSupported(e.FullPath))
+            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath))
                 return;
             // Hack to ensure that the file have been modified completely
             Console.WriteLine("You Edited {0}", e.Name);
             Thread.Sleep(5000);
-            events.Enqueue(new Event(extractNameFromPath(e.Name), e.FullPath, Utilities.EVENT_ACTIONS.modify));
+            events.Enqueue(new Event(extractNameFromPath(e.Name), e.FullPath, FileSystemUtilities.EVENT_ACTIONS.modify));
         }
 
         private void OnCreated(object source, FileSystemEventArgs e)
         {
-            if (!Utilities.ExtensionIsSupported(e.FullPath))
+            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath))
                 return;
             Console.WriteLine("You moved {0} and the deleted file last was {1}", e.Name, nameOfDeletedFile);
             String fileName = extractNameFromPath(e.Name);
             if (extractNameFromPath(e.Name).Equals(nameOfDeletedFile))
             {
                 Console.WriteLine("You moved {0}", e.Name);
-                events.Enqueue(new Event(fileName, pathOfDeletedFile, e.FullPath, Utilities.EVENT_ACTIONS.move));
+                events.Enqueue(new Event(fileName, pathOfDeletedFile, e.FullPath, FileSystemUtilities.EVENT_ACTIONS.move));
             }
         }
 
         private void OnRenamed(object source, RenamedEventArgs e)
         {
             // If the new path is outside one of the watched directories, we can go ahead and delete 
-            if (!Utilities.ExtensionIsSupported(e.FullPath))
+            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath))
                 return;
-            events.Enqueue(new Event(extractNameFromPath(e.OldFullPath), e.OldFullPath, Utilities.EVENT_ACTIONS.delete));
-            if (Utilities.fileIsImportant(e.FullPath))
+            events.Enqueue(new Event(extractNameFromPath(e.OldFullPath), e.OldFullPath, FileSystemUtilities.EVENT_ACTIONS.delete));
+            if (FileSystemUtilities.fileIsImportant(e.FullPath))
             {
                 Console.WriteLine(extractNameFromPath(e.FullPath) + "|" + e.FullPath);
-                events.Enqueue(new Event(extractNameFromPath(e.FullPath), e.FullPath, Utilities.EVENT_ACTIONS.open));
+                events.Enqueue(new Event(extractNameFromPath(e.FullPath), e.FullPath, FileSystemUtilities.EVENT_ACTIONS.open));
             }
         }
 
         private void OnDeleted(object source, FileSystemEventArgs e)
         {
-            if (!Utilities.ExtensionIsSupported(e.FullPath))
+            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath))
                 return;
             String fileName = extractNameFromPath(e.Name);
             if (!e.FullPath.Contains(Settings.transientCloudDirectoryPath))
@@ -85,7 +85,7 @@ namespace Transient_Cloud_Client
                 // This is done to account for move events
                 nameOfDeletedFile = fileName;
                 pathOfDeletedFile = e.FullPath;
-                events.Enqueue(new Event(fileName, e.FullPath, Utilities.EVENT_ACTIONS.delete));
+                events.Enqueue(new Event(fileName, e.FullPath, FileSystemUtilities.EVENT_ACTIONS.delete));
             }
         }
 

@@ -14,7 +14,6 @@ namespace Transient_Cloud_Client
     class StatisticsCollector
     {
         private ConcurrentQueue<Event> events;
-        private Dictionary<String, File> fileList = new Dictionary<String, File>();
         public StatisticsCollector(ref ConcurrentQueue<Event> events)
         {
             this.events = events;
@@ -34,39 +33,35 @@ namespace Transient_Cloud_Client
         {
             switch (currentEvent.Action)
             {
-                case Utilities.EVENT_ACTIONS.open:
+                case FileSystemUtilities.EVENT_ACTIONS.open:
                     OpenHandler(currentEvent);
                     break;
-                case Utilities.EVENT_ACTIONS.delete:
+                case FileSystemUtilities.EVENT_ACTIONS.delete:
                     DeleteHandler(currentEvent);
                     break;
-                case Utilities.EVENT_ACTIONS.rename:
-                    if (IsTracked(currentEvent.File.Name))
-                        fileList[currentEvent.File.Name] = new File(currentEvent.File.Name, currentEvent.File.Path);
+                case FileSystemUtilities.EVENT_ACTIONS.rename:
+                    RenameHandler(currentEvent);
                     break;
-                case Utilities.EVENT_ACTIONS.move:
+                case FileSystemUtilities.EVENT_ACTIONS.move:
                     MoveHandler(currentEvent);
                     break;
-                case Utilities.EVENT_ACTIONS.modify:
+                case FileSystemUtilities.EVENT_ACTIONS.modify:
                     ModifyHandler(currentEvent);
                     break;
             }
+        }
+
+        private void RenameHandler(Event currentEvent)
+        {
+            sendPutRequest(currentEvent.File);
         }
 
         private void MoveHandler(Event currentEvent)
         {
             // Match name and path
             Console.WriteLine("In move handler");
-            foreach (KeyValuePair<String, File> file in fileList)
-            {
-                Console.WriteLine("Trying to match {0} against {1}", file.Value.Path, currentEvent.File.Path);
-                if (file.Key.Equals(currentEvent.File.Name) && file.Value.Path.Equals(currentEvent.File.Path))
-                {
-                    file.Value.Path = currentEvent.File.NewPath;
-                    CopyFile(currentEvent.File);
-                    sendPutRequest(file.Value);
-                }
-            }
+            FileSystemUtilities.CopyFile(currentEvent.File);
+            sendPutRequest(currentEvent.File);
         }
 
         private void ModifyHandler(Event currentEvent)
@@ -76,19 +71,6 @@ namespace Transient_Cloud_Client
 
         private void OpenHandler(Event currentEvent)
         {
-            if (!IsTracked(currentEvent.File.Name))
-            {
-                fileList.Add(currentEvent.File.Name, currentEvent.File);
-                CopyFile(currentEvent.File);
-            }
-
-            // Have to decide what to here:
-            else
-            {
-                fileList[currentEvent.File.Name].UpdateLastModified();
-                CopyFile(currentEvent.File);
-            }
-
             // Send request to server
             SendOpenRequest(currentEvent.File);
         }
@@ -97,14 +79,14 @@ namespace Transient_Cloud_Client
         {
             //if (IsTracked(currentEvent.File.Name))
             //{
-                // delete from transient folder
-                DeleteFile(currentEvent.File);
+            // delete from transient folder
+            DeleteFile(currentEvent.File);
 
-                // delete from the server
-                sendDeleteRequest(currentEvent.File);
+            // delete from the server
+            sendDeleteRequest(currentEvent.File);
 
-                // remove from internal data structure
-                //fileList.Remove(currentEvent.File.Name);
+            // remove from internal data structure
+            //fileList.Remove(currentEvent.File.Name);
             //}
         }
 
@@ -113,25 +95,6 @@ namespace Transient_Cloud_Client
             SystemFile.Delete(String.Concat(Settings.transientCloudDirectoryPath, file.Name));
         }
 
-        private static void CopyFile(File file)
-        {
-            Console.WriteLine("Currently Processing: " + file.Name);
-            String destination = String.Concat(Settings.transientCloudDirectoryPath, file.Name);
-            String source = file.Path;
-            // Does destination file exist?
-            // Don't copy if the last modified date of the file is the same as what is present in the directory
-
-            if (!SystemFile.Exists(destination) || SystemFile.GetLastWriteTime(destination) <= SystemFile.GetLastWriteTime(source) && Utilities.ExtensionIsSupported(source))
-                try
-                {
-                    System.IO.File.Copy(source, destination, true);
-                }
-                catch
-                {
-                    Console.WriteLine("Couldn't copy at this time");
-                    Console.WriteLine(source + "|" + destination);
-                }
-        }
 
         private byte[] PostDataToServer(NameValueCollection data, String action)
         {
@@ -196,11 +159,8 @@ namespace Transient_Cloud_Client
 
         private void sendPutRequest(File file)
         {
+            // Send the old path and the new path, that's it ;)
         }
 
-        public Boolean IsTracked(String fileName)
-        {
-            return fileList.ContainsKey(fileName);
-        }
     }
 }
