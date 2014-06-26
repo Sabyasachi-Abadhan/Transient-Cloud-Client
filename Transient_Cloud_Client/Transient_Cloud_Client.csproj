@@ -43,7 +43,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="StatisticsCollector.cs" />
     <Compile Include="UnitTests.cs" />
-    <Compile Include="Utilities.cs" />
+    <Compile Include="FileSystemUtilities.cs" />
     <Compile Include="Watcher.cs" />
   </ItemGroup>
   <ItemGroup>

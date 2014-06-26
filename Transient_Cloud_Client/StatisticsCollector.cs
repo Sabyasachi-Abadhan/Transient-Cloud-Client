@@ -160,6 +160,18 @@ namespace Transient_Cloud_Client
         private void sendPutRequest(File file)
         {
             // Send the old path and the new path, that's it ;)
+            NameValueCollection data = new NameValueCollection()
+            {
+                {"fileHash", "1"},
+                {"fileOldPath", file.Path},
+                {"fileNewPath", file.NewPath},
+                {"EventName", "put"}
+            };
+            byte[] response = PostDataToServer(data, "put/");
+            if (response == null)
+                Console.WriteLine("An Error occured while putting data to the server");
+            else
+                Console.WriteLine("Successfully sent put request changing {0} {1}", file.Path, file.NewPath);
         }
 
     }
