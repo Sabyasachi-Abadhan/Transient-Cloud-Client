@@ -35,7 +35,7 @@ namespace Transient_Cloud_Client
             switch (currentEvent.Action)
             {
                 case Utilities.EVENT_ACTIONS.open:
-                    CreateHandler(currentEvent);
+                    OpenHandler(currentEvent);
                     break;
                 case Utilities.EVENT_ACTIONS.delete:
                     DeleteHandler(currentEvent);
@@ -44,11 +44,37 @@ namespace Transient_Cloud_Client
                     if (IsTracked(currentEvent.File.Name))
                         fileList[currentEvent.File.Name] = new File(currentEvent.File.Name, currentEvent.File.Path);
                     break;
-
+                case Utilities.EVENT_ACTIONS.move:
+                    MoveHandler(currentEvent);
+                    break;
+                case Utilities.EVENT_ACTIONS.modify:
+                    ModifyHandler(currentEvent);
+                    break;
             }
         }
 
-        private void CreateHandler(Event currentEvent)
+        private void MoveHandler(Event currentEvent)
+        {
+            // Match name and path
+            Console.WriteLine("In move handler");
+            foreach (KeyValuePair<String, File> file in fileList)
+            {
+                Console.WriteLine("Trying to match {0} against {1}", file.Value.Path, currentEvent.File.Path);
+                if (file.Key.Equals(currentEvent.File.Name) && file.Value.Path.Equals(currentEvent.File.Path))
+                {
+                    file.Value.Path = currentEvent.File.NewPath;
+                    CopyFile(currentEvent.File);
+                    sendPutRequest(file.Value);
+                }
+            }
+        }
+
+        private void ModifyHandler(Event currentEvent)
+        {
+            SendModifyRequest(currentEvent.File);
+        }
+
+        private void OpenHandler(Event currentEvent)
         {
             if (!IsTracked(currentEvent.File.Name))
             {
@@ -64,13 +90,13 @@ namespace Transient_Cloud_Client
             }
 
             // Send request to server
-            SendCreateRequest(currentEvent.File);
+            SendOpenRequest(currentEvent.File);
         }
 
         private void DeleteHandler(Event currentEvent)
         {
-            if (IsTracked(currentEvent.File.Name))
-            {
+            //if (IsTracked(currentEvent.File.Name))
+            //{
                 // delete from transient folder
                 DeleteFile(currentEvent.File);
 
@@ -78,8 +104,8 @@ namespace Transient_Cloud_Client
                 sendDeleteRequest(currentEvent.File);
 
                 // remove from internal data structure
-                fileList.Remove(currentEvent.File.Name);
-            }
+                //fileList.Remove(currentEvent.File.Name);
+            //}
         }
 
         private static void DeleteFile(File file)
@@ -107,49 +133,69 @@ namespace Transient_Cloud_Client
                 }
         }
 
-        private byte[] PostDataToServer(NameValueCollection data)
+        private byte[] PostDataToServer(NameValueCollection data, String action)
         {
             byte[] response;
             using (WebClient webClient = new WebClient())
             {
-                String url = String.Concat(Settings.apiUrl, "create/");
-                Console.WriteLine("URL : " + url);
+                String url = String.Concat(Settings.apiUrl, action);
+                Console.WriteLine("Posting to URL {0} ", url);
                 response = webClient.UploadValues(url, data);
             }
             return response;
         }
 
-        private void SendCreateRequest(File file)
+        private void SendModifyRequest(File file)
         {
             NameValueCollection data = new NameValueCollection()
             {
                 {"fileHash", "1"},
-                {"action", "create"},
                 {"fileName", file.Name},
                 {"filePath", file.Path},
                 {"fileLastModified", file.LastModified.ToShortTimeString()}
             };
-            byte[] response = PostDataToServer(data);
+            byte[] response = PostDataToServer(data, "modify/");
             if (response == null)
                 Console.WriteLine("An Error occured while posting data to server");
             else
                 Console.WriteLine("Successfully created file {0} on server", file.Name);
         }
 
+        private void SendOpenRequest(File file)
+        {
+            NameValueCollection data = new NameValueCollection()
+            {
+                {"fileHash", "1"},
+                {"fileName", file.Name},
+                {"filePath", file.Path},
+                {"EventName", "open"},
+                {"LastAccessTime", DateTime.Now.ToString()}
+            };
+            byte[] response = PostDataToServer(data, "open/");
+            if (response == null)
+                Console.WriteLine("An Error occured while posting Open Event to server");
+            else
+                Console.WriteLine("Successfully sent open event on {0} to server", file.Name);
+        }
+
         private void sendDeleteRequest(File file)
         {
-            // Send the name and hash of file so the server can delete it
-        }
-        private int GenerateMD5Hash(File file)
-        {
-            using (var md5 = MD5.Create())
+            NameValueCollection data = new NameValueCollection()
             {
-                using (var stream = SystemFile.OpenRead(file.Path))
-                {
-                    Byte[] bytes = md5.ComputeHash(stream);
-                    return BitConverter.ToInt32(bytes, 0);
-                }
-            }
+                {"fileHash", "1"},
+                {"fileName", file.Name},
+                {"filePath", file.Path},
+                {"EventName", "delete"}
+            };
+            byte[] response = PostDataToServer(data, "delete/");
+            if (response == null)
+                Console.WriteLine("An Error occured while deleting data from the server");
+            else
+                Console.WriteLine("Successfully sent delete request for file {0} at location {1}", file.Name, file.Path);
+        }
+
+        private void sendPutRequest(File file)
+        {
         }
 
         public Boolean IsTracked(String fileName)

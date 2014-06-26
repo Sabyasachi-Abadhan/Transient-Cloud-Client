@@ -4,7 +4,9 @@ using System.Collections;
 using System.Linq;
 using System.Text;
 using System.IO;
+using SystemFile = System.IO.File;
 using System.Net;
+using System.Security.Cryptography;
 
 namespace Transient_Cloud_Client
 {
@@ -13,7 +15,9 @@ namespace Transient_Cloud_Client
         public enum EVENT_ACTIONS
         {
             open,
+            close,
             delete,
+            modify,
             rename,
             move
         }
@@ -56,5 +60,16 @@ namespace Transient_Cloud_Client
                 return true;
             return false;
         }
+
+        public static int GenerateMD5Hash(File file)
+        {
+            using (var md5 = MD5.Create())
+            {
+                FileStream stream = new FileStream(file.Path, FileMode.Open, FileAccess.Read);
+                Byte[] bytes = md5.ComputeHash(stream);
+                return BitConverter.ToInt32(bytes, 0);
+            }
+        }
+
     }
 }

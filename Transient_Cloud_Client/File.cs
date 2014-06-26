@@ -11,8 +11,18 @@ namespace Transient_Cloud_Client
         {
             this.Name = name;
             this.Path = path;
-            this.LastModified = System.IO.File.GetLastAccessTime(path);
+            this.LastModified = System.IO.File.GetLastWriteTime(path);
         }
+
+        // This constructor is only used by the move event
+        public File(String name, String originalPath, String newPath)
+        {
+            this.Name = name;
+            this.Path = originalPath;
+            this.NewPath = newPath;
+            this.LastModified = System.IO.File.GetLastWriteTime(path);
+        }
+
         private String name;
         public String Name
         {
@@ -26,6 +36,18 @@ namespace Transient_Cloud_Client
             }
         }
 
+        private String newPath;
+        public String NewPath
+        {
+            get
+            {
+                return newPath;
+            }
+            set
+            {
+                newPath = value;
+            }
+        }
         private String path;
         public String Path
         {
@@ -52,7 +74,7 @@ namespace Transient_Cloud_Client
         }
         public void UpdateLastModified()
         {
-            this.LastModified = System.IO.File.GetLastAccessTime(path);
+            this.LastModified = System.IO.File.GetLastWriteTime(path);
         }
     }
 }
