@@ -61,10 +61,32 @@ namespace Transient_Cloud_Client
             return false;
         }
 
-        public static void CopyFile(File file)
+        public static void PutFileInTransientFolder(File file)
+        {
+            String sharedPath = CreateDirectories(file.Path);
+            CopyFile(file, sharedPath);
+        }
+        public static String CreateDirectories(String path)
+        {
+            int startIndex = 0;
+            for (int i = 0; i < path.Length; i++)
+                for (int j = 0; j < Settings.directoriesToWatch.Length; j++)
+                    if (path.Substring(0, i).Equals(Settings.directoriesToWatch[j]))
+                    {
+                        startIndex = i;
+                        break;
+                    }
+            int lastIndex = path.LastIndexOf(@"\");
+            String transientPath = String.Concat(Settings.transientCloudDirectoryPath, path.Substring(startIndex, lastIndex - startIndex + 1));
+            Console.WriteLine(transientPath);
+            Directory.CreateDirectory(transientPath);
+            return transientPath;
+        }
+
+        public static void CopyFile(File file, String destination)
         {
             Console.WriteLine("Currently Processing: " + file.Name);
-            String destination = String.Concat(Settings.transientCloudDirectoryPath, file.Name);
+            destination = String.Concat(destination, file.Name);
             String source = file.Path;
             // Does destination file exist?
             // Don't copy if the last modified date of the file is the same as what is present in the directory
@@ -81,6 +103,16 @@ namespace Transient_Cloud_Client
                 }
         }
 
+        public static String GetTransientFolderPath(String path)
+        {
+            int startIndex = 0;
+            for (int i = 0; i < path.Length; i++)
+                for (int j = 0; j < Settings.directoriesToWatch.Length; j++)
+                    if (path.Substring(0, i).Equals(Settings.directoriesToWatch[j]))
+                        startIndex = i;
+            String sharedPath = String.Concat(Settings.transientCloudDirectoryPath, ExtractNameFromPath(path));
+            return sharedPath;
+        }
         public static int GenerateMD5Hash(File file)
         {
             using (var md5 = MD5.Create())
@@ -90,6 +122,9 @@ namespace Transient_Cloud_Client
                 return BitConverter.ToInt32(bytes, 0);
             }
         }
-
+        public static String ExtractNameFromPath(String path)
+        {
+            return path.Substring(path.LastIndexOf(@"\") + 1);
+        }
     }
 }

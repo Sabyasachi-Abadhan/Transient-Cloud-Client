@@ -46,7 +46,7 @@ namespace Transient_Cloud_Client
                     MoveHandler(currentEvent);
                     break;
                 case FileSystemUtilities.EVENT_ACTIONS.modify:
-                    ModifyHandler(currentEvent);
+                    //ModifyHandler(currentEvent);
                     break;
             }
         }
@@ -60,19 +60,23 @@ namespace Transient_Cloud_Client
         {
             // Match name and path
             Console.WriteLine("In move handler");
-            FileSystemUtilities.CopyFile(currentEvent.File);
+            FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
             sendPutRequest(currentEvent.File);
         }
 
         private void ModifyHandler(Event currentEvent)
         {
+
+            FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
             SendModifyRequest(currentEvent.File);
         }
 
         private void OpenHandler(Event currentEvent)
         {
             // Send request to server
-            SendOpenRequest(currentEvent.File);
+            FileSystemUtilities.CreateDirectories(currentEvent.File.Path);
+            FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
+            //SendOpenRequest(currentEvent.File);
         }
 
         private void DeleteHandler(Event currentEvent)
@@ -110,11 +114,12 @@ namespace Transient_Cloud_Client
 
         private void SendModifyRequest(File file)
         {
+            Console.WriteLine(FileSystemUtilities.GetTransientFolderPath(file.Path));
             NameValueCollection data = new NameValueCollection()
             {
                 {"fileHash", "1"},
                 {"fileName", file.Name},
-                {"filePath", file.Path},
+                {"filePath", FileSystemUtilities.GetTransientFolderPath(file.Path)},
                 {"fileLastModified", file.LastModified.ToShortTimeString()}
             };
             byte[] response = PostDataToServer(data, "modify/");
