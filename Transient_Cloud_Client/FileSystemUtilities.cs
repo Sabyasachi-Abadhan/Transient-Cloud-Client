@@ -103,6 +103,11 @@ namespace Transient_Cloud_Client
                 }
         }
 
+        private static void DeleteFile(File file)
+        {
+            SystemFile.Delete(String.Concat(Settings.transientCloudDirectoryPath, file.Name));
+        }
+
         public static String GetTransientFolderPath(String path)
         {
             int startIndex = 0;
@@ -113,6 +118,7 @@ namespace Transient_Cloud_Client
             String sharedPath = String.Concat(Settings.transientCloudDirectoryPath, ExtractNameFromPath(path));
             return sharedPath;
         }
+
         public static int GenerateMD5Hash(File file)
         {
             using (var md5 = MD5.Create())

@@ -46,59 +46,42 @@ namespace Transient_Cloud_Client
                     MoveHandler(currentEvent);
                     break;
                 case FileSystemUtilities.EVENT_ACTIONS.modify:
-                    //ModifyHandler(currentEvent);
+                    ModifyHandler(currentEvent);
                     break;
             }
         }
 
         private void RenameHandler(Event currentEvent)
         {
+            // Have to stop and consider what if the file is not in the database?
+            FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
             sendPutRequest(currentEvent.File);
         }
 
         private void MoveHandler(Event currentEvent)
         {
-            // Match name and path
-            Console.WriteLine("In move handler");
-            FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
+            // Have to stop and consider what if the file is not in the database? Should first send the request. 
+            // If the server says it's unimportant we can skip it
             sendPutRequest(currentEvent.File);
+            FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
         }
 
         private void ModifyHandler(Event currentEvent)
         {
-
             FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
             SendModifyRequest(currentEvent.File);
         }
 
         private void OpenHandler(Event currentEvent)
         {
-            // Send request to server
-            FileSystemUtilities.CreateDirectories(currentEvent.File.Path);
-            FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
-            //SendOpenRequest(currentEvent.File);
+            SendOpenRequest(currentEvent.File);
         }
 
         private void DeleteHandler(Event currentEvent)
         {
-            //if (IsTracked(currentEvent.File.Name))
-            //{
-            // delete from transient folder
-            DeleteFile(currentEvent.File);
-
-            // delete from the server
+            // check if file is in the database, it so just send a delete request, that's it
             sendDeleteRequest(currentEvent.File);
-
-            // remove from internal data structure
-            //fileList.Remove(currentEvent.File.Name);
-            //}
         }
-
-        private static void DeleteFile(File file)
-        {
-            SystemFile.Delete(String.Concat(Settings.transientCloudDirectoryPath, file.Name));
-        }
-
 
         private byte[] PostDataToServer(NameValueCollection data, String action)
         {
@@ -162,7 +145,7 @@ namespace Transient_Cloud_Client
                 Console.WriteLine("Successfully sent delete request for file {0} at location {1}", file.Name, file.Path);
         }
 
-        private void sendPutRequest(File file)
+        private bool sendPutRequest(File file)
         {
             // Send the old path and the new path, that's it ;)
             NameValueCollection data = new NameValueCollection()
@@ -174,10 +157,12 @@ namespace Transient_Cloud_Client
             };
             byte[] response = PostDataToServer(data, "put/");
             if (response == null)
-                Console.WriteLine("An Error occured while putting data to the server");
+                return false;
             else
-                Console.WriteLine("Successfully sent put request changing {0} {1}", file.Path, file.NewPath);
+            {
+                String responseString = System.Text.Encoding.Default.GetString(response);
+                return responseString.Equals("Exists") ? true : false;
+            }
         }
-
     }
 }
