@@ -89,7 +89,7 @@ namespace Transient_Cloud_Client
             using (WebClient webClient = new WebClient())
             {
                 String url = String.Concat(Settings.apiUrl, action);
-                Console.WriteLine("Posting to URL {0} ", url);
+                //Console.WriteLine("Posting to URL {0} ", url);
                 response = webClient.UploadValues(url, data);
             }
             return response;
@@ -100,10 +100,10 @@ namespace Transient_Cloud_Client
             Console.WriteLine(FileSystemUtilities.GetTransientFolderPath(file.Path));
             NameValueCollection data = new NameValueCollection()
             {
-                {"fileHash", "1"},
-                {"fileName", file.Name},
-                {"filePath", FileSystemUtilities.GetTransientFolderPath(file.Path)},
-                {"fileLastModified", file.LastModified.ToShortTimeString()}
+                {"hash", FileSystemUtilities.GenerateMD5Hash(file).ToString()},
+                {"name", file.Name},
+                {"path", FileSystemUtilities.GetTransientFolderPath(file.Path)},
+                {"expiration_date", file.LastModified.ToShortTimeString()}
             };
             byte[] response = PostDataToServer(data, "modify/");
             if (response == null)
@@ -116,11 +116,10 @@ namespace Transient_Cloud_Client
         {
             NameValueCollection data = new NameValueCollection()
             {
-                {"fileHash", "1"},
-                {"fileName", file.Name},
-                {"filePath", file.Path},
-                {"EventName", "open"},
-                {"LastAccessTime", DateTime.Now.ToString()}
+                {"file_hash", "1"},
+                {"file_name", file.Name},
+                {"file_path", file.Path},
+                {"date", DateTime.Now.ToString()}
             };
             byte[] response = PostDataToServer(data, "open/");
             if (response == null)

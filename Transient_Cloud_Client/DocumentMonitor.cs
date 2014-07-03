@@ -10,6 +10,7 @@ namespace Transient_Cloud_Client
     class DocumentMonitor
     {
         private ConcurrentQueue<Event> events;
+        private ArrayList openedFiles = new ArrayList();
         public DocumentMonitor(ref ConcurrentQueue<Event> events)
         {
             this.events = events;
@@ -64,9 +65,34 @@ namespace Transient_Cloud_Client
             while (true)
             {
                 ArrayList list;
+                bool isStillOpen = false;
                 list = GetOpenedWordFiles();
                 list.AddRange(GetOpenedExcelFiles());
                 list.AddRange(GetOpenedPowerpointFiles());
+
+                // remove multiple events for same open action and add newly opened files to openedFiles
+                ArrayList listCopy = new ArrayList(list);
+                foreach (Event currentEvent in listCopy)
+                {
+                    if (openedFiles.Contains(currentEvent.File.Path))
+                        list.Remove(currentEvent);
+                    else
+                        openedFiles.Add(currentEvent.File.Path);
+                }
+
+                ArrayList openedFilesCopy = new ArrayList(openedFiles);
+
+                // Close the files which are no longer open
+                foreach (String filePath in openedFilesCopy)
+                {
+                    isStillOpen = false;
+                    foreach (Event currentEvent in listCopy)
+                        if (currentEvent.File.Path.Equals(filePath))
+                            isStillOpen = true;
+                    if (!isStillOpen)
+                        openedFiles.Remove(filePath);
+                }
+
                 Console.WriteLine("Enqueueing: ");
                 Print(FileSystemUtilities.FilterList(list));
                 foreach (Event currentEvent in list)

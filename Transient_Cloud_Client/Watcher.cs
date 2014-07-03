@@ -40,21 +40,16 @@ namespace Transient_Cloud_Client
 
         private void OnChanged(object source, FileSystemEventArgs e)
         {
-            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath))
-                return;
-            // Hack to ensure that the file have been modified completely
-            Console.WriteLine("You Edited {0}", e.Name);
-            Thread.Sleep(5000);
-            events.Enqueue(new Event(FileSystemUtilities.ExtractNameFromPath(e.Name), e.FullPath, FileSystemUtilities.EVENT_ACTIONS.modify));
+            // 
         }
 
         private void OnCreated(object source, FileSystemEventArgs e)
         {
-            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath))
+            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath) || !FileSystemUtilities.fileIsImportant(e.FullPath))
                 return;
             Console.WriteLine("You moved {0} and the deleted file last was {1}", e.Name, nameOfDeletedFile);
             String fileName = FileSystemUtilities.ExtractNameFromPath(e.Name);
-            if (FileSystemUtilities.ExtractNameFromPath(e.Name).Equals(nameOfDeletedFile))
+            if (fileName.Equals(nameOfDeletedFile))
             {
                 Console.WriteLine("You moved {0}", e.Name);
                 events.Enqueue(new Event(fileName, pathOfDeletedFile, e.FullPath, FileSystemUtilities.EVENT_ACTIONS.move));
@@ -63,30 +58,34 @@ namespace Transient_Cloud_Client
 
         private void OnRenamed(object source, RenamedEventArgs e)
         {
-            // If the new path is outside one of the watched directories, we can go ahead and delete 
-            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath))
+            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath) || !FileSystemUtilities.fileIsImportant(e.FullPath))
                 return;
-            events.Enqueue(new Event(FileSystemUtilities.ExtractNameFromPath(e.OldFullPath), e.OldFullPath, FileSystemUtilities.EVENT_ACTIONS.delete));
+
+            // If any temp file was renamed, send a modify event
+            String oldFileName = FileSystemUtilities.ExtractNameFromPath(e.OldName);
+            Console.WriteLine(oldFileName);
+            if (FileSystemUtilities.isTemporaryFile(oldFileName))
+            {
+                events.Enqueue(new Event(FileSystemUtilities.ExtractNameFromPath(e.Name), e.FullPath, FileSystemUtilities.EVENT_ACTIONS.modify));
+                return;
+            }
+
+            // Otherwise, it is a normal rename event so send a put request
             if (FileSystemUtilities.fileIsImportant(e.FullPath))
             {
                 Console.WriteLine(FileSystemUtilities.ExtractNameFromPath(e.FullPath) + "|" + e.FullPath);
-                events.Enqueue(new Event(FileSystemUtilities.ExtractNameFromPath(e.FullPath), e.FullPath, FileSystemUtilities.EVENT_ACTIONS.open));
+                events.Enqueue(new Event(FileSystemUtilities.ExtractNameFromPath(e.FullPath), e.FullPath, FileSystemUtilities.EVENT_ACTIONS.rename));
             }
         }
 
         private void OnDeleted(object source, FileSystemEventArgs e)
         {
-            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath))
+            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath) || !FileSystemUtilities.fileIsImportant(e.FullPath))
                 return;
             String fileName = FileSystemUtilities.ExtractNameFromPath(e.Name);
-            if (!e.FullPath.Contains(Settings.transientCloudDirectoryPath))
-            {
-                Console.WriteLine("Enqueing delete operation on file {0}", fileName);
-                // This is done to account for move events
-                nameOfDeletedFile = fileName;
-                pathOfDeletedFile = e.FullPath;
-                events.Enqueue(new Event(fileName, e.FullPath, FileSystemUtilities.EVENT_ACTIONS.delete));
-            }
+            // This is done to account for move events
+            nameOfDeletedFile = fileName;
+            pathOfDeletedFile = e.FullPath;
         }
 
         private void resetLastDeletedFile()

@@ -23,6 +23,7 @@ namespace Transient_Cloud_Client
         }
 
         public static String[] supportedExtensions = { ".docx", ".doc", ".rtf", ".odt", ".dotm", ".xls", ".xlsx", ".ppt", ".pptx" };
+
         public static ArrayList FilterList(ArrayList list)
         {
             ArrayList sublist = new ArrayList();
@@ -35,7 +36,7 @@ namespace Transient_Cloud_Client
         public static bool fileIsImportant(String path)
         {
             foreach (String directory in Settings.directoriesToWatch)
-                if (path.StartsWith(directory))
+                if (path.StartsWith(directory) && !path.StartsWith(Settings.transientCloudDirectoryPath))
                     return true;
             return false;
         }
@@ -47,6 +48,12 @@ namespace Transient_Cloud_Client
                     return true;
             return false;
         }
+
+        public static bool isTemporaryFile(String name)
+        {
+            return (name.StartsWith("$") || name.StartsWith("~") || name[0] > '0');
+        }
+
 
         public static bool IsServerOnline()
         {
@@ -123,7 +130,7 @@ namespace Transient_Cloud_Client
         {
             using (var md5 = MD5.Create())
             {
-                FileStream stream = new FileStream(file.Path, FileMode.Open, FileAccess.Read);
+                FileStream stream = new FileStream(@"D:\Dropbox\Dropbox\ModulePlanning.xlsx", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 Byte[] bytes = md5.ComputeHash(stream);
                 return BitConverter.ToInt32(bytes, 0);
             }
