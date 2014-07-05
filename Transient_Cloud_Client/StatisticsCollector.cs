@@ -54,7 +54,13 @@ namespace Transient_Cloud_Client
         private void RenameHandler(Event currentEvent)
         {
             // Have to stop and consider what if the file is not in the database?
-            FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
+            String originalTransientFolderPath = FileSystemUtilities.GetTransientFolderPath(currentEvent.File.Path);
+            Console.WriteLine("Original Path: " + originalTransientFolderPath);
+            // If file never existed, don't need to do anything
+            if (!SystemFile.Exists(originalTransientFolderPath))
+                return;
+            String newTransientFolderPath = FileSystemUtilities.GetTransientFolderPath(currentEvent.File.NewPath);
+            FileSystemUtilities.MoveFile(originalTransientFolderPath, newTransientFolderPath);
             sendPutRequest(currentEvent.File);
         }
 
@@ -62,8 +68,6 @@ namespace Transient_Cloud_Client
         {
             // Have to stop and consider what if the file is not in the database? Should first send the request. 
             // If the server says it's unimportant we can skip it
-            
-            sendPutRequest(currentEvent.File);
             String originalTransientFolderPath = FileSystemUtilities.GetTransientFolderPath(currentEvent.File.Path);
             Console.WriteLine("Original Path: " + originalTransientFolderPath);
             String newTransientFolderPath = FileSystemUtilities.GetTransientFolderPath(currentEvent.File.NewPath);
@@ -75,6 +79,7 @@ namespace Transient_Cloud_Client
             String directories = newTransientFolderPath.Substring(0, newTransientFolderPath.LastIndexOf(@"\"));
             System.IO.Directory.CreateDirectory(directories);
             FileSystemUtilities.MoveFile(originalTransientFolderPath, newTransientFolderPath);
+            sendPutRequest(currentEvent.File);
         }
 
         private void ModifyHandler(Event currentEvent)

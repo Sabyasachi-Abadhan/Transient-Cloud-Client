@@ -52,7 +52,7 @@ namespace Transient_Cloud_Client
             if (fileName.Equals(nameOfDeletedFile))
             {
                 Console.WriteLine("You moved {0}", e.Name);
-                events.Enqueue(new Event(fileName, pathOfDeletedFile, e.FullPath, FileSystemUtilities.EVENT_ACTIONS.move));
+                events.Enqueue(new Event(fileName, pathOfDeletedFile, e.FullPath, FileSystemUtilities.EVENT_ACTIONS.move))  ;
             }
         }
 
@@ -74,7 +74,7 @@ namespace Transient_Cloud_Client
             if (FileSystemUtilities.fileIsImportant(e.FullPath))
             {
                 Console.WriteLine(FileSystemUtilities.ExtractNameFromPath(e.FullPath) + "|" + e.FullPath);
-                events.Enqueue(new Event(FileSystemUtilities.ExtractNameFromPath(e.FullPath), e.FullPath, FileSystemUtilities.EVENT_ACTIONS.rename));
+                events.Enqueue(new Event(FileSystemUtilities.ExtractNameFromPath(e.FullPath), e.OldFullPath, e.FullPath, FileSystemUtilities.EVENT_ACTIONS.rename));
             }
         }
 

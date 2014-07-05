@@ -14,7 +14,7 @@ namespace Transient_Cloud_Client
             this.Action = action;
         }
 
-        // Special constructor for move events
+        // Special constructor for move, rename events
         public Event(String fileName, String oldPath, String newPath, FileSystemUtilities.EVENT_ACTIONS action)
         {
             File file = new File(fileName, oldPath, newPath);
