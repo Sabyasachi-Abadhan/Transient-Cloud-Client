@@ -37,7 +37,6 @@ namespace Transient_Cloud_Client
                     OpenHandler(currentEvent);
                     break;
                 case FileSystemUtilities.EVENT_ACTIONS.delete:
-                    DeleteHandler(currentEvent);
                     break;
                 case FileSystemUtilities.EVENT_ACTIONS.rename:
                     RenameHandler(currentEvent);
@@ -61,7 +60,7 @@ namespace Transient_Cloud_Client
                 return;
             String newTransientFolderPath = FileSystemUtilities.GetTransientFolderPath(currentEvent.File.NewPath);
             FileSystemUtilities.MoveFile(originalTransientFolderPath, newTransientFolderPath);
-            sendPutRequest(currentEvent.File);
+            SendRenameRequest(currentEvent.File);
         }
 
         private void MoveHandler(Event currentEvent)
@@ -79,7 +78,7 @@ namespace Transient_Cloud_Client
             String directories = newTransientFolderPath.Substring(0, newTransientFolderPath.LastIndexOf(@"\"));
             System.IO.Directory.CreateDirectory(directories);
             FileSystemUtilities.MoveFile(originalTransientFolderPath, newTransientFolderPath);
-            sendPutRequest(currentEvent.File);
+            SendMoveRequest(currentEvent.File);
         }
 
         private void ModifyHandler(Event currentEvent)
@@ -115,10 +114,10 @@ namespace Transient_Cloud_Client
             Console.WriteLine(FileSystemUtilities.GetTransientFolderPath(file.Path));
             NameValueCollection data = new NameValueCollection()
             {
-                {"hash", FileSystemUtilities.GenerateMD5Hash(file).ToString()},
+                {"hash", FileSystemUtilities.GenerateMD5Hash(file.Path).ToString()},
                 {"name", file.Name},
                 {"path", FileSystemUtilities.GetTransientFolderPath(file.Path)},
-                {"expiration_date", file.LastModified.ToShortTimeString()}
+                {"expiration_date", file.LastModified.ToString()}
             };
             byte[] response = PostDataToServer(data, "modify/");
             if (response == null)
@@ -131,10 +130,9 @@ namespace Transient_Cloud_Client
         {
             NameValueCollection data = new NameValueCollection()
             {
-                {"file_hash", "1"},
                 {"file_name", file.Name},
                 {"file_path", file.Path},
-                {"date", DateTime.Now.ToString()}
+                {"date", file.LastModified.ToString()}
             };
             byte[] response = PostDataToServer(data, "open/");
             if (response == null)
@@ -143,33 +141,37 @@ namespace Transient_Cloud_Client
                 Console.WriteLine("Successfully sent open event on {0} to server", file.Name);
         }
 
-        private void sendDeleteRequest(File file)
-        {
-            NameValueCollection data = new NameValueCollection()
-            {
-                {"fileHash", "1"},
-                {"fileName", file.Name},
-                {"filePath", file.Path},
-                {"EventName", "delete"}
-            };
-            byte[] response = PostDataToServer(data, "delete/");
-            if (response == null)
-                Console.WriteLine("An Error occured while deleting data from the server");
-            else
-                Console.WriteLine("Successfully sent delete request for file {0} at location {1}", file.Name, file.Path);
-        }
-
-        private bool sendPutRequest(File file)
+        private bool SendMoveRequest(File file)
         {
             // Send the old path and the new path, that's it ;)
             NameValueCollection data = new NameValueCollection()
             {
-                {"fileHash", "1"},
-                {"fileOldPath", file.Path},
-                {"fileNewPath", file.NewPath},
-                {"EventName", "put"}
+                {"hash", FileSystemUtilities.GenerateMD5Hash(file.NewPath).ToString()},
+                {"old_path", FileSystemUtilities.GetTransientFolderPath(file.Path)},
+                {"new_path", FileSystemUtilities.GetTransientFolderPath(file.NewPath)}
             };
-            byte[] response = PostDataToServer(data, "put/");
+            byte[] response = PostDataToServer(data, "move/");
+            if (response == null)
+                return false;
+            else
+            {
+                String responseString = System.Text.Encoding.Default.GetString(response);
+                return responseString.Equals("Exists") ? true : false;
+            }
+        }
+
+        private bool SendRenameRequest(File file)
+        {
+            // Send the old path and the new path, that's it ;)
+            NameValueCollection data = new NameValueCollection()
+            {
+                {"hash", FileSystemUtilities.GenerateMD5Hash(file.NewPath).ToString()},
+                {"old_path", FileSystemUtilities.GetTransientFolderPath(file.Path)},
+                {"new_path", FileSystemUtilities.GetTransientFolderPath(file.NewPath)},
+                {"old_name", FileSystemUtilities.ExtractNameFromPath(file.Path)},
+                {"new_name", file.Name}
+            };
+            byte[] response = PostDataToServer(data, "rename/");
             if (response == null)
                 return false;
             else

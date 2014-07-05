@@ -130,11 +130,11 @@ namespace Transient_Cloud_Client
             return sharedPath;
         }
 
-        public static int GenerateMD5Hash(File file)
+        public static int GenerateMD5Hash(String path)
         {
             using (var md5 = MD5.Create())
             {
-                FileStream stream = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 Byte[] bytes = md5.ComputeHash(stream);
                 return BitConverter.ToInt32(bytes, 0);
             }
