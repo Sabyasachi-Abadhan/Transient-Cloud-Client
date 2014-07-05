@@ -40,7 +40,7 @@ namespace Transient_Cloud_Client
 
         private void OnChanged(object source, FileSystemEventArgs e)
         {
-            // 
+            // We don't currently use this for anything because modify events are triggered by the 
         }
 
         private void OnCreated(object source, FileSystemEventArgs e)
@@ -80,7 +80,7 @@ namespace Transient_Cloud_Client
 
         private void OnDeleted(object source, FileSystemEventArgs e)
         {
-            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath) || !FileSystemUtilities.fileIsImportant(e.FullPath))
+            if (!FileSystemUtilities.ExtensionIsSupported(e.FullPath) || !FileSystemUtilities.fileIsImportant(e.FullPath) || FileSystemUtilities.isTemporaryFile(e.FullPath))
                 return;
             String fileName = FileSystemUtilities.ExtractNameFromPath(e.Name);
             // This is done to account for move events

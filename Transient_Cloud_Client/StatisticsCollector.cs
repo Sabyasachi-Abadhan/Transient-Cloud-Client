@@ -62,8 +62,19 @@ namespace Transient_Cloud_Client
         {
             // Have to stop and consider what if the file is not in the database? Should first send the request. 
             // If the server says it's unimportant we can skip it
+            
             sendPutRequest(currentEvent.File);
-            FileSystemUtilities.PutFileInTransientFolder(currentEvent.File);
+            String originalTransientFolderPath = FileSystemUtilities.GetTransientFolderPath(currentEvent.File.Path);
+            Console.WriteLine("Original Path: " + originalTransientFolderPath);
+            String newTransientFolderPath = FileSystemUtilities.GetTransientFolderPath(currentEvent.File.NewPath);
+            Console.WriteLine("New Path: " + newTransientFolderPath);
+            // If the original file existed then move it and send a put request otherwise do nothing
+            if (!SystemFile.Exists(originalTransientFolderPath))
+                return;
+            // Create the directories of destination if doesn't exist
+            String directories = newTransientFolderPath.Substring(0, newTransientFolderPath.LastIndexOf(@"\"));
+            System.IO.Directory.CreateDirectory(directories);
+            FileSystemUtilities.MoveFile(originalTransientFolderPath, newTransientFolderPath);
         }
 
         private void ModifyHandler(Event currentEvent)
@@ -79,8 +90,7 @@ namespace Transient_Cloud_Client
 
         private void DeleteHandler(Event currentEvent)
         {
-            // check if file is in the database, it so just send a delete request, that's it
-            sendDeleteRequest(currentEvent.File);
+            // No delete events are forwarded to the server because server manages deletions based on expiration date
         }
 
         private byte[] PostDataToServer(NameValueCollection data, String action)

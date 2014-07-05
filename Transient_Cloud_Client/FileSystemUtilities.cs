@@ -51,7 +51,7 @@ namespace Transient_Cloud_Client
 
         public static bool isTemporaryFile(String name)
         {
-            return (name.StartsWith("$") || name.StartsWith("~") || name[0] > '0');
+            return (name.StartsWith("$") || name.StartsWith("~") || (name[0] > '0' && !name.Contains(".")));
         }
 
 
@@ -73,6 +73,7 @@ namespace Transient_Cloud_Client
             String sharedPath = CreateDirectories(file.Path);
             CopyFile(file, sharedPath);
         }
+
         public static String CreateDirectories(String path)
         {
             int startIndex = 0;
@@ -110,11 +111,14 @@ namespace Transient_Cloud_Client
                 }
         }
 
-        private static void DeleteFile(File file)
+        public static void DeleteFile(String fullFilePath)
         {
-            SystemFile.Delete(String.Concat(Settings.transientCloudDirectoryPath, file.Name));
+            SystemFile.Delete(fullFilePath);
         }
-
+        public static void MoveFile(String originalPath, String newPath)
+        {
+            SystemFile.Move(originalPath, newPath);
+        }
         public static String GetTransientFolderPath(String path)
         {
             int startIndex = 0;
@@ -122,7 +126,7 @@ namespace Transient_Cloud_Client
                 for (int j = 0; j < Settings.directoriesToWatch.Length; j++)
                     if (path.Substring(0, i).Equals(Settings.directoriesToWatch[j]))
                         startIndex = i;
-            String sharedPath = String.Concat(Settings.transientCloudDirectoryPath, ExtractNameFromPath(path));
+            String sharedPath = String.Concat(Settings.transientCloudDirectoryPath, extractRelativePathFromPath(path));
             return sharedPath;
         }
 
@@ -130,10 +134,17 @@ namespace Transient_Cloud_Client
         {
             using (var md5 = MD5.Create())
             {
-                FileStream stream = new FileStream(@"D:\Dropbox\Dropbox\ModulePlanning.xlsx", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                FileStream stream = new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 Byte[] bytes = md5.ComputeHash(stream);
                 return BitConverter.ToInt32(bytes, 0);
             }
+        }
+        public static String extractRelativePathFromPath(String path)
+        {
+            foreach (String directoryToWatch in Settings.directoriesToWatch)
+                if (path.Contains(directoryToWatch))
+                    return (path.Replace(directoryToWatch, ""));
+            return path;
         }
         public static String ExtractNameFromPath(String path)
         {
