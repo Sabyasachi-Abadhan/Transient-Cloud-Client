@@ -11,6 +11,10 @@ using System.Web;
 
 namespace Transient_Cloud_Client
 {
+    /// <summary>
+    /// Consumer of events produced by DocumentMonitor and Watcher. Processes these events and makes appropriate calls
+    /// to the server and corresponding file system opeartions (such as moving/renaming files)
+    /// </summary>
     class StatisticsCollector
     {
         private ConcurrentQueue<Event> events;
@@ -99,12 +103,19 @@ namespace Transient_Cloud_Client
 
         private byte[] PostDataToServer(NameValueCollection data, String action)
         {
-            byte[] response;
+            byte[] response = new byte[0];
             using (WebClient webClient = new WebClient())
             {
                 String url = String.Concat(Settings.apiUrl, action);
                 //Console.WriteLine("Posting to URL {0} ", url);
-                response = webClient.UploadValues(url, data);
+                try
+                {
+                    response = webClient.UploadValues(url, data);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
             return response;
         }
@@ -114,10 +125,11 @@ namespace Transient_Cloud_Client
             Console.WriteLine(FileSystemUtilities.GetTransientFolderPath(file.Path));
             NameValueCollection data = new NameValueCollection()
             {
-                {"hash", FileSystemUtilities.GenerateMD5Hash(file.Path).ToString()},
                 {"name", file.Name},
                 {"path", FileSystemUtilities.GetTransientFolderPath(file.Path)},
-                {"expiration_date", file.LastModified.ToString()}
+                {"expiration_date", file.LastModified.ToString()},
+                {"identifier", Environment.UserName},
+                {"file_size", new System.IO.FileInfo(file.Path).Length.ToString()}
             };
             byte[] response = PostDataToServer(data, "modify/");
             if (response == null)
@@ -146,7 +158,6 @@ namespace Transient_Cloud_Client
             // Send the old path and the new path, that's it ;)
             NameValueCollection data = new NameValueCollection()
             {
-                {"hash", FileSystemUtilities.GenerateMD5Hash(file.NewPath).ToString()},
                 {"old_path", FileSystemUtilities.GetTransientFolderPath(file.Path)},
                 {"new_path", FileSystemUtilities.GetTransientFolderPath(file.NewPath)}
             };
@@ -165,7 +176,6 @@ namespace Transient_Cloud_Client
             // Send the old path and the new path, that's it ;)
             NameValueCollection data = new NameValueCollection()
             {
-                {"hash", FileSystemUtilities.GenerateMD5Hash(file.NewPath).ToString()},
                 {"old_path", FileSystemUtilities.GetTransientFolderPath(file.Path)},
                 {"new_path", FileSystemUtilities.GetTransientFolderPath(file.NewPath)},
                 {"old_name", FileSystemUtilities.ExtractNameFromPath(file.Path)},

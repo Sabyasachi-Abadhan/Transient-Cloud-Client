@@ -7,6 +7,9 @@ using System.Text;
 
 namespace Transient_Cloud_Client
 {
+    /// <summary>
+    /// Class uses Microsoft PIA to establish open documents/sheets/slide shows. It then creates open events for them and puts them onto the shared concurrent queue
+    /// </summary>
     class DocumentMonitor
     {
         private ConcurrentQueue<Event> events;
@@ -15,6 +18,11 @@ namespace Transient_Cloud_Client
         {
             this.events = events;
         }
+
+        /// <summary>
+        /// Returns a list of files open in Microsoft Word
+        /// </summary>
+        /// <returns>ArrayList of open word documents</returns>
         public static ArrayList GetOpenedWordFiles()
         {
             ArrayList documentList = new ArrayList();
@@ -28,6 +36,10 @@ namespace Transient_Cloud_Client
             return documentList;
         }
 
+        /// <summary>
+        /// Returns a list of files open in Microsoft Excel
+        /// </summary>
+        /// <returns>ArrayList of open Excel sheets</returns>
         public static ArrayList GetOpenedExcelFiles()
         {
             ArrayList workBookList = new ArrayList();
@@ -41,6 +53,10 @@ namespace Transient_Cloud_Client
             return workBookList;
         }
 
+        /// <summary>
+        /// Returns a list of files open in Microsoft Powerpoint
+        /// </summary>
+        /// <returns>ArrayList of open Powerpoint presentations</returns>
         public static ArrayList GetOpenedPowerpointFiles()
         {
             ArrayList presentationList = new ArrayList();
@@ -60,6 +76,10 @@ namespace Transient_Cloud_Client
                 Console.WriteLine(currentEvent.File.Name);
         }
 
+        /// <summary>
+        /// This is the most important method that keeps polling for documents and adding them to the queue
+        /// It reads only true open events by keeping track of file close events
+        /// </summary>
         public void monitor()
         {
             while (true)

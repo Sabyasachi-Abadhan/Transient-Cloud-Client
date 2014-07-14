@@ -9,6 +9,9 @@ using System.Threading;
 
 namespace Transient_Cloud_Client
 {
+    /// <summary>
+    /// File Watcher service which reads file system events of supported types and produces corresponding custom events onto the queue
+    /// </summary>
     class Watcher
     {
         private FileSystemWatcher watcher;

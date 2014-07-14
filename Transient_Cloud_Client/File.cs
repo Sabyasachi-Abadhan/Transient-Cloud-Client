@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Transient_Cloud_Client
 {
+    /// <summary>
+    /// Abstraction of files in the filesystem based on certain specific metadata such as name, path, last modified.
+    /// </summary>
     class File
     {
         public File(String name, String path)

@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Transient_Cloud_Client
 {
+    /// <summary>
+    /// Class is a model of a system event such as move, rename etc.
+    /// </summary>
     class Event
     {
         public Event(String fileName, String filePath, FileSystemUtilities.EVENT_ACTIONS action)

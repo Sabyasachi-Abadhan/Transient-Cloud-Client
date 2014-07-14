@@ -8,6 +8,9 @@ using System.Threading;
 
 namespace Transient_Cloud_Client
 {
+    /// <summary>
+    /// Application class contains main method and initializes all the other modules and stages interactions between them
+    /// </summary>
     class Application
     {
 

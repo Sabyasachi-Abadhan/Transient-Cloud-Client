@@ -10,8 +10,14 @@ using System.Security.Cryptography;
 
 namespace Transient_Cloud_Client
 {
+    /// <summary>
+    /// This class performs all file system related operations such as copying/deleting files and generating MD5Hash
+    /// </summary>
     class FileSystemUtilities
     {
+        /// <summary>
+        /// Enum to store different kind of event actions to be put into the shared queue for processing by consumer (StatisticsCollector)
+        /// </summary>
         public enum EVENT_ACTIONS
         {
             open,
@@ -24,6 +30,11 @@ namespace Transient_Cloud_Client
 
         public static String[] supportedExtensions = { ".docx", ".doc", ".rtf", ".odt", ".dotm", ".xls", ".xlsx", ".ppt", ".pptx" };
 
+        /// <summary>
+        /// Filters out unnecessary file move/delete/rename operations for unsupported file types from a list
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
         public static ArrayList FilterList(ArrayList list)
         {
             ArrayList sublist = new ArrayList();
@@ -33,6 +44,11 @@ namespace Transient_Cloud_Client
             return sublist;
         }
 
+        /// <summary>
+        /// Checks if the file is located in one of the watched directories specified by the user and is not in the transient directory created by the app
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static bool fileIsImportant(String path)
         {
             foreach (String directory in Settings.directoriesToWatch)
@@ -115,10 +131,12 @@ namespace Transient_Cloud_Client
         {
             SystemFile.Delete(fullFilePath);
         }
+
         public static void MoveFile(String originalPath, String newPath)
         {
             SystemFile.Move(originalPath, newPath);
         }
+
         public static String GetTransientFolderPath(String path)
         {
             int startIndex = 0;
@@ -139,6 +157,7 @@ namespace Transient_Cloud_Client
                 return BitConverter.ToInt32(bytes, 0);
             }
         }
+
         public static String extractRelativePathFromPath(String path)
         {
             foreach (String directoryToWatch in Settings.directoriesToWatch)
@@ -146,6 +165,7 @@ namespace Transient_Cloud_Client
                     return (path.Replace(directoryToWatch, ""));
             return path;
         }
+
         public static String ExtractNameFromPath(String path)
         {
             return path.Substring(path.LastIndexOf(@"\") + 1);
