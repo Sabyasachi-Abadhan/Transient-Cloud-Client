@@ -143,7 +143,7 @@ namespace Transient_Cloud_Client
             NameValueCollection data = new NameValueCollection()
             {
                 {"file_name", file.Name},
-                {"file_path", file.Path},
+                {"file_path", FileSystemUtilities.GetTransientFolderPath(file.Path)},
                 {"date", file.LastModified.ToString()}
             };
             byte[] response = PostDataToServer(data, "open/");
